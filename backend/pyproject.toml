@@ -1,0 +1,28 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+disallow_untyped_defs = true
+ignore_missing_imports = true
+warn_return_any = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+addopts = "--cov=app --cov-report=term-missing --cov-fail-under=70"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
+    "alembic/*",
+    "app/workers/analysis_worker.py",
+    "app/workers/transcription_worker.py",
+    "app/workers/video_worker.py",
+    "app/workers/youtube_worker.py",
+    "app/workers/diarization_worker.py",
+    "app/core/supabase_client.py",
+]

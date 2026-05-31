@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}トランスクリプトを貼り付け | ConversationMovie{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+  <!-- ページヘッダー -->
+  <div class="mb-8 text-center">
+    <h1 class="text-2xl font-bold text-slate-800 mb-2">トランスクリプトを貼り付ける</h1>
+    <p class="text-slate-500 text-sm">
+      会議の文字起こし・議事録・メモを貼り付けるだけで、AIアバター動画を自動生成します
+    </p>
+  </div>
+
+  <!-- 入力フォーム -->
+  <div class="card p-6">
+    <form id="pasteForm">
+
+      <!-- 会議タイトル -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5" for="title">
+          会議タイトル <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="title"
+          type="text"
+          placeholder="例：2026-05-20 週次定例MTG"
+          maxlength="100"
+          required
+          class="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent
+                 placeholder:text-slate-300 transition"
+        >
+      </div>
+
+      <!-- 言語選択 -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5" for="language">
+          言語
+        </label>
+        <select
+          id="language"
+          class="border border-slate-200 rounded-lg px-4 py-2.5 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent
+                 bg-white transition"
+        >
+          <option value="ja" selected>🇯🇵 日本語</option>
+          <option value="en">🇺🇸 英語</option>
+        </select>
+      </div>
+
+      <!-- テキストエリア -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5" for="text">
+          トランスクリプト本文 <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          id="text"
+          rows="16"
+          placeholder="ここにGoogle Meetの文字起こし、議事録、メモなどを貼り付けてください。
+
+例：
+山田：今日は新機能の優先順位について話し合いたいと思います。
+鈴木：先週のユーザーヒアリングの結果を踏まえると、検索機能が最優先かと。
+山田：そうですね。では今週中にスペックを固めましょう。
+..."
+          required
+          class="w-full border border-slate-200 rounded-lg px-4 py-3 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent
+                 placeholder:text-slate-300 resize-y transition font-mono leading-relaxed"
+        ></textarea>
+
+        <!-- 文字数カウンター -->
+        <div class="flex justify-between mt-1.5">
+          <p class="text-xs text-slate-400">
+            話者名を「山田：」のように書くと、より精度の高い分析になります
+          </p>
+          <span id="charCount" class="text-xs text-slate-400">0 文字</span>
+        </div>
+      </div>
+
+      <!-- 説明（任意） -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5" for="description">
+          説明 <span class="text-slate-400 font-normal">（任意）</span>
+        </label>
+        <input
+          id="description"
+          type="text"
+          placeholder="例：Q2の進捗確認と新機能の優先度について議論した定例MTG"
+          class="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent
+                 placeholder:text-slate-300 transition"
+        >
+      </div>
+
+      <!-- 送信ボタン -->
+      <button
+        type="submit"
+        id="submitBtn"
+        class="w-full gradient-bg text-white font-semibold py-3 rounded-xl
+               hover:opacity-90 active:scale-95 transition-all duration-150
+               disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        AI分析・動画生成を開始する →
+      </button>
+
+    </form>
+  </div>
+
+  <!-- 処理の流れ -->
+  <div class="mt-6 card p-5">
+    <p class="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">処理の流れ</p>
+    <div class="flex items-center gap-2 text-xs text-slate-600 flex-wrap">
+      <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-medium">① テキスト入力</span>
+      <span class="text-slate-300">→</span>
+      <span class="bg-purple-50 text-purple-600 px-3 py-1 rounded-full font-medium">② Gemini AI分析</span>
+      <span class="text-slate-300">→</span>
+      <span class="bg-pink-50 text-pink-600 px-3 py-1 rounded-full font-medium">③ 字幕・アバター生成</span>
+      <span class="text-slate-300">→</span>
+      <span class="bg-rose-50 text-rose-600 px-3 py-1 rounded-full font-medium">④ 動画レンダリング</span>
+      <span class="text-slate-300">→</span>
+      <span class="bg-orange-50 text-orange-600 px-3 py-1 rounded-full font-medium">⑤ YouTube投稿</span>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const textArea = document.getElementById('text');
+  const charCount = document.getElementById('charCount');
+  const submitBtn = document.getElementById('submitBtn');
+  const form = document.getElementById('pasteForm');
+
+  // 文字数カウンターをリアルタイム更新
+  textArea.addEventListener('input', () => {
+    const count = textArea.value.length;
+    charCount.textContent = `${count.toLocaleString()} 文字`;
+    charCount.className = count < 10
+      ? 'text-xs text-red-400'
+      : 'text-xs text-slate-400';
+  });
+
+  // フォーム送信
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const title = document.getElementById('title').value.trim();
+    const text = textArea.value.trim();
+    const language = document.getElementById('language').value;
+    const description = document.getElementById('description').value.trim() || null;
+
+    if (!title || text.length < 10) return;
+
+    // ボタンをローディング状態に
+    submitBtn.disabled = true;
+    submitBtn.textContent = '送信中...';
+
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch('/api/transcript/paste', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ title, text, language, description }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || '送信に失敗しました');
+      }
+
+      const data = await response.json();
+
+      // 処理進捗ページへリダイレクト
+      window.location.href = `/jobs/${data.job_id}`;
+
+    } catch (error) {
+      alert(`エラー: ${error.message}`);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'AI分析・動画生成を開始する →';
+    }
+  });
+</script>
+{% endblock %}

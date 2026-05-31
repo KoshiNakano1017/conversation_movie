@@ -1,0 +1,42 @@
+2026-05-24 08:33:44 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:33:47 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:33:48 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:33:49 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:33:49 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:33:50 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:33:50 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:34:16 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:34:18 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:34:19 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:34:20 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:34:20 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:34:21 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:34:21 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 08:41:57 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 11:10:45 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 13:01:24 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 13:01:30 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 13:04:33 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 13:04:39 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 14:37:02 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-24 14:37:06 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-24 14:38:21 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-24 14:38:24 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-24 14:39:46 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 14:40:01 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-24 14:40:06 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-24 16:23:27 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 17:03:09 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-24 17:03:14 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-24 17:42:54 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-24 17:42:55 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-24 19:33:15 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 19:33:23 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-24 19:33:26 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-24 19:34:48 | INFO     | app.main:lifespan:20 | ConversationMovie APIサーバー起動
+2026-05-24 19:35:13 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-24 19:35:17 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-24 19:37:14 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-24 19:37:14 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-24 19:37:16 | INFO     | app.api.websocket:job_progress_websocket:91 | WebSocket接続
+2026-05-25 08:12:44 | INFO     | app.api.websocket:job_progress_websocket:91 | WebSocket接続

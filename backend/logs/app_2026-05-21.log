@@ -1,0 +1,43 @@
+2026-05-21 11:49:39 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 11:49:39 | WARNING  | app.main:on_startup:105 | devユーザー作成をスキップ
+2026-05-21 11:49:59 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 11:50:04 | INFO     | app.main:on_startup:103 | 開発用devユーザーを作成しました
+2026-05-21 11:50:06 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 11:53:19 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 13:39:30 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 13:39:35 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 13:39:40 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 15:17:24 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 15:18:09 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 15:20:54 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 15:21:12 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 15:23:09 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 15:23:16 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 15:29:35 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 15:29:35 | WARNING  | app.main:on_startup:105 | devユーザー作成をスキップ
+2026-05-21 15:29:40 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 15:29:42 | WARNING  | app.main:on_startup:105 | devユーザー作成をスキップ
+2026-05-21 18:56:30 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 19:05:24 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 19:05:25 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 19:14:26 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 19:14:27 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 19:28:04 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 19:28:06 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 19:37:05 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 19:37:06 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 19:42:01 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 19:42:03 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 19:47:39 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 19:47:40 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 19:53:31 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 19:53:32 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 20:03:01 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 20:03:03 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 20:09:41 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 20:09:43 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 20:11:21 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 20:11:23 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）
+2026-05-21 20:27:18 | INFO     | app.main:on_startup:89 | ConversationMovie APIサーバー起動
+2026-05-21 20:28:44 | INFO     | app.api.transcript:paste_transcript:84 | トランスクリプト受付完了
+2026-05-21 20:28:47 | INFO     | app.workers.pipeline:start_from_transcript:40 | パイプライン開始（テキスト入力）

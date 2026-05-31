@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}処理中... | ConversationMovie{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+
+  <!-- ジョブヘッダー -->
+  <div class="mb-6">
+    <h1 class="text-xl font-bold text-slate-800" id="jobTitle">処理中...</h1>
+    <p class="text-sm text-slate-400 mt-1" id="jobCreatedAt"></p>
+  </div>
+
+  <!-- 進捗カード -->
+  <div class="card p-6 mb-4">
+
+    <!-- プログレスバー -->
+    <div class="mb-6">
+      <div class="flex justify-between text-xs text-slate-500 mb-1.5">
+        <span>進捗</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+        <div
+          id="progressBar"
+          class="h-2.5 rounded-full transition-all duration-500"
+          style="width: 0%; background: linear-gradient(90deg, #6366f1, #a855f7);"
+        ></div>
+      </div>
+    </div>
+
+    <!-- ステップリスト -->
+    <ul class="space-y-3" id="stepList">
+      <li class="step-item" data-step="analyzing">
+        <div class="flex items-center gap-3">
+          <span class="step-icon text-lg w-6 text-center">⏳</span>
+          <div>
+            <p class="text-sm font-medium text-slate-700">AI分析</p>
+            <p class="text-xs text-slate-400">Geminiで要約・テーマ・名言を生成</p>
+          </div>
+        </div>
+      </li>
+      <li class="step-item" data-step="generating_video">
+        <div class="flex items-center gap-3">
+          <span class="step-icon text-lg w-6 text-center">⏳</span>
+          <div>
+            <p class="text-sm font-medium text-slate-700">動画生成</p>
+            <p class="text-xs text-slate-400">アバター動画をレンダリング</p>
+          </div>
+        </div>
+      </li>
+      <li class="step-item" data-step="uploading_youtube">
+        <div class="flex items-center gap-3">
+          <span class="step-icon text-lg w-6 text-center">⏳</span>
+          <div>
+            <p class="text-sm font-medium text-slate-700">YouTube投稿</p>
+            <p class="text-xs text-slate-400">動画をYouTubeにアップロード</p>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 完了時に表示するセクション（初期は非表示） -->
+  <div id="completedSection" class="hidden card p-6 border-2 border-indigo-100">
+    <div class="text-center mb-4">
+      <p class="text-3xl mb-2">🎉</p>
+      <h2 class="text-lg font-bold text-slate-800">動画生成が完了しました！</h2>
+    </div>
+    <div class="flex gap-3">
+      <a id="youtubeUrl" href="#" target="_blank"
+         class="flex-1 gradient-bg text-white text-center py-2.5 rounded-xl text-sm font-medium hover:opacity-90 transition">
+        YouTubeで見る
+      </a>
+      <a id="previewUrl" href="#"
+         class="flex-1 bg-slate-100 text-slate-700 text-center py-2.5 rounded-xl text-sm font-medium hover:bg-slate-200 transition">
+        分析結果を見る
+      </a>
+    </div>
+  </div>
+
+  <!-- エラー時に表示するセクション（初期は非表示） -->
+  <div id="errorSection" class="hidden card p-6 border-2 border-red-100">
+    <div class="text-center mb-4">
+      <p class="text-3xl mb-2">❌</p>
+      <h2 class="text-lg font-bold text-slate-800">エラーが発生しました</h2>
+      <p id="errorMessage" class="text-sm text-slate-500 mt-1"></p>
+    </div>
+    <button onclick="retryJob()"
+      class="w-full bg-red-50 text-red-600 border border-red-200 py-2.5 rounded-xl text-sm font-medium hover:bg-red-100 transition">
+      再実行する
+    </button>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const JOB_ID = "{{ job_id }}";
+
+  const stepIcons = {
+    pending:    { icon: '⏳', label: 'waiting' },
+    in_progress:{ icon: '🔄', label: 'in-progress' },
+    completed:  { icon: '✅', label: 'done' },
+    failed:     { icon: '❌', label: 'failed' },
+  };
+
+  function updateStep(stepName, stepStatus) {
+    const item = document.querySelector(`[data-step="${stepName}"]`);
+    if (!item) return;
+    const iconEl = item.querySelector('.step-icon');
+    const state = stepIcons[stepStatus] || stepIcons.pending;
+    iconEl.textContent = state.icon;
+  }
+
+  function updateProgress(percent) {
+    document.getElementById('progressBar').style.width = `${percent}%`;
+    document.getElementById('progressPercent').textContent = `${percent}%`;
+  }
+
+  // WebSocketで進捗を受信
+  const token = localStorage.getItem('access_token');
+  const wsUrl = `ws://${location.host}/ws/jobs/${JOB_ID}${token ? '?token=' + token : ''}`;
+  const ws = new WebSocket(wsUrl);
+
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    const { event: eventType, data } = msg;
+
+    if (data.progress !== undefined) updateProgress(data.progress);
+    if (data.step) updateStep(data.step, data.status);
+
+    if (eventType === 'job_completed') {
+      updateProgress(100);
+      document.getElementById('completedSection').classList.remove('hidden');
+      if (data.youtube_url) {
+        document.getElementById('youtubeUrl').href = data.youtube_url;
+      }
+      document.getElementById('previewUrl').href = `/jobs/${JOB_ID}/preview`;
+      ws.close();
+    }
+
+    if (eventType === 'job_failed') {
+      document.getElementById('errorSection').classList.remove('hidden');
+      document.getElementById('errorMessage').textContent = data.message || '不明なエラーが発生しました';
+      ws.close();
+    }
+  };
+
+  ws.onerror = () => {
+    // WebSocket未接続時は30秒ごとにAPIポーリングで代替
+    setTimeout(pollJobStatus, 30000);
+  };
+
+  async function pollJobStatus() {
+    try {
+      const res = await fetch(`/api/jobs/${JOB_ID}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (data.progress !== undefined) updateProgress(data.progress);
+    } catch {}
+  }
+
+  function retryJob() {
+    fetch(`/api/jobs/${JOB_ID}/retry`, { method: 'POST',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    }).then(() => location.reload());
+  }
+</script>
+{% endblock %}

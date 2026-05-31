@@ -1,0 +1,4 @@
+# 音声文字起こし（将来フェーズ用）
+# インストールするには: pip install -r requirements-whisper.txt
+openai-whisper==20240930
+torch==2.5.1

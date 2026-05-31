@@ -1,0 +1,109 @@
+---
+description: AIによる高速生成に対応するCI/CDとテスト設計の原則
+alwaysApply: true
+---
+
+# CI/CD品質ゲートとテスト設計
+
+## 原則: テストコードが唯一の信頼の源泉
+
+AIは高速にコードを生成するが、**テストなき高速生成は技術的負債の高速蓄積**である。
+コードを生成するたびに、対応するテストコードを同時に要求する。
+
+---
+
+## 1. テストコードの同時生成ルール
+
+AIにコードを書かせる際は、必ず以下をセットで要求する:
+
+```
+実装コードとあわせて、以下のテストコードも生成してください:
+- 正常系テスト（期待どおりの入力・出力）
+- 境界値テスト（空文字、None、最大値など）
+- 異常系テスト（例外・エラーの発生）
+- モックを使った外部依存の分離
+```
+
+テストファイルの配置:
+```
+app/services/transcription_service.py
+tests/unit/test_transcription_service.py  # 必ずペアで作成
+```
+
+---
+
+## 2. CIパイプライン必須ステップ
+
+`.github/workflows/ci.yml` に以下を全て含める:
+
+```yaml
+jobs:
+  quality-gate:
+    steps:
+      - name: 型チェック (mypy)      # 型安全の強制
+      - name: Lint (ruff)            # コードスタイル統一
+      - name: セキュリティスキャン   # bandit or safety
+      - name: テスト実行 (pytest)    # カバレッジ80%以上を要件化
+      - name: カバレッジレポート     # PRにコメントで自動投稿
+```
+
+**これらのいずれかが失敗した場合はマージ禁止。**
+ゲートを無効化（skip）する場合は必ずチームへの説明を義務とする。
+
+---
+
+## 3. フィードバックループの高速化
+
+テストが遅いと修正バッチが大きくなり、問題の特定が困難になる。
+
+目標: **全テストを3分以内に完了させる**
+
+実現方法:
+```yaml
+# pytestの並列実行
+pytest -n auto tests/
+
+# 変更ファイルに関係するテストのみ先行実行
+pytest --testmon
+
+# 重いテスト（Whisper/Remotion）はintegration/に分離して別ジョブ化
+jobs:
+  unit-tests:    # 常に実行、1分以内
+  integration:   # mainブランチへのPRのみ実行
+```
+
+---
+
+## 4. コンテキスト分離のディレクトリルール
+
+```
+backend/app/
+  core/       # 🔒 人間が設計・管理。変更にはレビュー必須
+  services/   # 🤝 AIと協働。テストカバレッジ90%以上を維持
+  workers/    # 🤝 AIと協働。各タスクに対応するテスト必須
+  generated/  # 🤖 AI生成が主体。テストが通ればマージ可
+```
+
+各ディレクトリの変更方針:
+- `core/` の変更: 設計書の更新も同時に必須
+- `services/` の変更: 対応するテストの更新が必須
+- `generated/` の変更: CIが通れば承認可（ただし定期的に人間レビューを実施）
+
+---
+
+## 5. 静的解析の設定基準
+
+`pyproject.toml` に以下を定義して強制する:
+
+```toml
+[tool.mypy]
+strict = true
+disallow_untyped_defs = true   # 型ヒントなし関数を禁止
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N"]  # エラー・未使用import・命名規則
+
+[tool.pytest.ini_options]
+addopts = "--cov=app --cov-fail-under=80"  # カバレッジ80%未満でCI失敗
+```

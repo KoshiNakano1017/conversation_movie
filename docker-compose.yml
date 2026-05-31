@@ -1,0 +1,148 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: cm_db
+    environment:
+      POSTGRES_USER: cm_user
+      POSTGRES_PASSWORD: cm_password
+      POSTGRES_DB: cm_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cm_user -d cm_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    container_name: cm_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - media:/app/media
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://cm_user:cm_password@db:5432/cm_dev
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  worker-ai:
+    build: ./backend
+    container_name: cm_worker_ai
+    command: celery -A app.celery_app worker -Q ai --concurrency=1 --loglevel=info
+    volumes:
+      - ./backend:/app
+      - media:/app/media
+      - models:/app/models
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://cm_user:cm_password@db:5432/cm_dev
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  worker-video:
+    build: ./backend
+    container_name: cm_worker_video
+    command: celery -A app.celery_app worker -Q video --concurrency=2 --loglevel=info
+    volumes:
+      - ./backend:/app
+      - media:/app/media
+      - ./remotion:/remotion
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://cm_user:cm_password@db:5432/cm_dev
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  worker-upload:
+    build: ./backend
+    container_name: cm_worker_upload
+    command: celery -A app.celery_app worker -Q upload --concurrency=3 --loglevel=info
+    volumes:
+      - ./backend:/app
+      - media:/app/media
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://cm_user:cm_password@db:5432/cm_dev
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: cm_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  flower:
+    image: mher/flower:2.0
+    container_name: cm_flower
+    command: celery flower --broker=redis://redis:6379/0 --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  media:
+    driver: local
+  models:
+    driver: local
+  pgdata:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

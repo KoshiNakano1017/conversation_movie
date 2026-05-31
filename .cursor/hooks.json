@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "python .cursor/hooks/update_keiba_task_board.py",
+        "timeout": 30
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "python .cursor/hooks/update_keiba_task_board.py",
+        "timeout": 30
+      }
+    ]
+  }
+}
