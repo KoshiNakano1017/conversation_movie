@@ -19,10 +19,14 @@ router = APIRouter(prefix="/api/transcript", tags=["transcript"])
 class TranscriptPasteRequest(BaseModel):
     """トランスクリプト貼り付けリクエスト"""
 
-    title: str = Field(..., min_length=1, max_length=100, description="会議タイトル")
-    text: str = Field(..., min_length=10, description="貼り付けるトランスクリプト本文")
+    title: str = Field(..., min_length=1, max_length=100, description="タイトル")
+    text: str = Field(..., min_length=10, description="貼り付ける本文（会議録/ニュース/スレッド/一般テキスト）")
     language: str = Field(default="ja", description="言語コード (ja / en)")
-    description: str | None = Field(default=None, description="会議の説明（任意）")
+    description: str | None = Field(default=None, description="説明（任意）")
+    content_type: str = Field(
+        default="meeting",
+        description="入力種別: meeting（会議録）/ news（ニュース記事）/ thread（掲示板スレッド）/ auto（自動判定）",
+    )
 
 
 class TranscriptPasteResponse(BaseModel):
@@ -49,13 +53,41 @@ def paste_transcript(
     音声ファイルのアップロード・Whisper処理をスキップし、
     入力テキストを直接Gemini分析に渡す。
     """
-    character_count = len(request.text.strip())
-    if character_count < 10:
+    raw_text = request.text.strip()
+    if len(raw_text) < 10:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="テキストが短すぎます（10文字以上必要です）",
         )
 
+    allowed_types = {"meeting", "news", "thread", "auto"}
+    content_type = request.content_type if request.content_type in allowed_types else "meeting"
+
+    # ─── 会議録以外は会話台本に変換 ───────────────────────────
+    transcript_text = raw_text
+    if content_type != "meeting":
+        try:
+            from app.services.gemini_service import GeminiService
+
+            gemini = GeminiService()
+            transcript_text = gemini.adapt_to_dialogue(
+                raw_text, content_type=content_type, language=request.language
+            )
+            logger.info(
+                "コンテンツを会話台本に変換",
+                content_type=content_type,
+                original_chars=len(raw_text),
+                adapted_chars=len(transcript_text),
+            )
+        except Exception as error:
+            logger.warning(
+                "会話台本への変換に失敗。元テキストで継続",
+                content_type=content_type,
+                error=str(error),
+            )
+            transcript_text = raw_text
+
+    character_count = len(transcript_text)
     job_id = str(uuid.uuid4())
 
     # ─── ジョブレコードを作成 ──────────────────────────────
@@ -73,9 +105,9 @@ def paste_transcript(
     # ─── トランスクリプトレコードを作成 ───────────────────
     transcription = Transcription(
         job_id=job_id,
-        full_text=request.text.strip(),
+        full_text=transcript_text,
         language=request.language,
-        source="paste",
+        source=f"paste:{content_type}",
         segments=[],
     )
     db.add(transcription)
@@ -85,6 +117,7 @@ def paste_transcript(
         "トランスクリプト受付完了",
         job_id=job_id,
         title=request.title,
+        content_type=content_type,
         characters=character_count,
     )
 

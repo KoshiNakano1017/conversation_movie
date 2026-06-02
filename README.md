@@ -1,9 +1,19 @@
 # ConversationMovie 🎬
 
-会議の **トランスクリプト（文字起こし）や音声** から、AI が内容を分析・要約し、
-**アバターキャラクターが会議室で発言する解説動画** を自動生成するアプリです。
+**会議録・ニュース記事・掲示板スレッド・一般テキスト** など、あらゆる文章コンテンツを、
+AI が分析・要約し、**アバターキャラクターが会議室で発言する解説動画** に自動変換するアプリです。
 
-「議事録は読まれない」を解決し、会議のエッセンスを短時間で振り返れる動画コンテンツに変換します。
+「長文は読まれない」を解決し、コンテンツのエッセンスを短時間で観られる動画に変換します。
+
+### 対応する入力コンテンツ
+| 種別 (`content_type`) | 内容 | 変換のされ方 |
+| --- | --- | --- |
+| `meeting` | 会議の文字起こし | 発言者ごとにそのまま会議室で再現 |
+| `news` | ニュース記事 | AI が「キャスター × 解説者」の掛け合いに変換 |
+| `thread` | 掲示板（5ch/2ch等）スレッド | AI が「スレ民たちの議論」に変換 |
+| `auto` | 一般テキスト全般 | AI が内容に最適な登場人物で会話化 |
+
+会議録以外は、いったん **「話者: 発言」形式の会話台本** に正規化してから同じ動画化パイプラインに流すため、どんな入力でも「複数アバターの会話劇」として出力されます。
 
 ---
 
@@ -205,14 +215,27 @@ celery -A app.celery_app flower --port=5555
 #### 方法 B: API（curl）
 
 ```powershell
-# トランスクリプト貼り付け → 202 Accepted + job_id
+# 会議録 → 202 Accepted + job_id
 curl -X POST http://localhost:8000/api/transcript/paste `
   -H "Content-Type: application/json" `
-  -d '{"title":"戦略思考とデザイン思考","language":"ja","text":"田島：本日は..."}'
+  -d '{"title":"戦略思考とデザイン思考","language":"ja","content_type":"meeting","text":"田島：本日は..."}'
+
+# ニュース記事を会話劇に変換して動画化
+curl -X POST http://localhost:8000/api/transcript/paste `
+  -H "Content-Type: application/json" `
+  -d '{"title":"再エネ目標引き上げ","language":"ja","content_type":"news","text":"政府は本日..."}'
+
+# 掲示板スレッドを議論動画に変換
+curl -X POST http://localhost:8000/api/transcript/paste `
+  -H "Content-Type: application/json" `
+  -d '{"title":"話題のスレ","language":"ja","content_type":"thread","text":">>1 ..."}'
 
 # ジョブ状態確認
 curl http://localhost:8000/api/jobs/{job_id}
 ```
+
+> `content_type` を省略すると `meeting`（会議録）として扱われます。
+> `news` / `thread` / `auto` を指定すると、AI が入力を「話者: 発言」形式の会話台本に変換してから動画化します。
 
 #### パイプラインの流れ
 

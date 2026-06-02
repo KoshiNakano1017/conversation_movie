@@ -127,6 +127,67 @@ class GeminiService:
 
     # ─── 公開メソッド ─────────────────────────────────────────
 
+    def adapt_to_dialogue(
+        self,
+        raw_text: str,
+        content_type: str = "auto",
+        language: str = "ja",
+    ) -> str:
+        """
+        任意のコンテンツ（ニュース記事 / 掲示板スレッド / 一般テキスト）を
+        「話者: 発言」形式の会話台本に変換する。
+
+        会議入力（meeting）はすでに会話形式のため変換せずそのまま返す。
+
+        Args:
+            raw_text: 元のコンテンツ本文
+            content_type: meeting / news / thread / auto
+            language: 出力言語
+
+        Returns:
+            「話者名: 発言」を改行区切りで並べた会話台本テキスト
+        """
+        if content_type == "meeting":
+            return raw_text
+
+        lang_label = "日本語" if language == "ja" else "English"
+
+        instructions = {
+            "news": (
+                "次のニュース記事を、ニュース番組のように分かりやすく伝える会話台本に変換してください。\n"
+                "登場人物は「キャスター」（事実を伝える進行役）と「解説者」（背景や意味を補足）の2名。\n"
+                "視聴者が飽きないよう、要点を噛み砕いた掛け合いにしてください。"
+            ),
+            "thread": (
+                "次の掲示板スレッドの内容を、複数の参加者がワイワイ議論する会話台本に変換してください。\n"
+                "登場人物は「スレ主」と「住民A」「住民B」など2〜4名。\n"
+                "元の主要な意見や流れを保ちつつ、テンポよくまとめてください。"
+            ),
+            "auto": (
+                "次のテキストの内容を、2〜4名の登場人物が分かりやすく解説・議論する会話台本に変換してください。\n"
+                "内容に最も適した登場人物（例: 司会と解説者、キャスターとコメンテーター等）を設定してください。"
+            ),
+        }
+        instruction = instructions.get(content_type, instructions["auto"])
+
+        prompt = (
+            f"{instruction}\n\n"
+            f"# 制約\n"
+            f"- 出力は「話者名: 発言」を1行ずつ並べる形式のみ。前置き・説明・記号装飾は不要。\n"
+            f"- 話者名は短く統一（途中で表記を変えない）。\n"
+            f"- 合計8〜16発言程度。1発言は40〜120文字程度。\n"
+            f"- 出力言語は{lang_label}。\n\n"
+            f"# 入力\n{raw_text}\n\n"
+            f"# 出力（会話台本）\n"
+        )
+
+        result = self._call_with_retry(prompt).strip()
+        # コードブロックで囲まれて返ってきた場合は除去
+        if result.startswith("```"):
+            lines = [l for l in result.splitlines() if not l.strip().startswith("```")]
+            result = "\n".join(lines).strip()
+        return result
+
     def analyze_conversation(
         self,
         transcript: str,
