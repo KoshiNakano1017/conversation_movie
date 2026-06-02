@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}トランスクリプトを貼り付け | ConversationMovie{% endblock %}
+{% block title %}コンテンツを貼り付け | ConversationMovie{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto">
 
   <!-- ページヘッダー -->
   <div class="mb-8 text-center">
-    <h1 class="text-2xl font-bold text-slate-800 mb-2">トランスクリプトを貼り付ける</h1>
+    <h1 class="text-2xl font-bold text-slate-800 mb-2">コンテンツを貼り付ける</h1>
     <p class="text-slate-500 text-sm">
-      会議の文字起こし・議事録・メモを貼り付けるだけで、AIアバター動画を自動生成します
+      会議録・ニュース記事・掲示板スレッドなど、どんな文章でも貼り付けるだけで
+      アバターが会話する解説動画を自動生成します
     </p>
   </div>
 
@@ -17,10 +18,44 @@
   <div class="card p-6">
     <form id="pasteForm">
 
-      <!-- 会議タイトル -->
+      <!-- コンテンツ種別 -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-slate-700 mb-2">
+          コンテンツの種類 <span class="text-red-500">*</span>
+        </label>
+        <div id="contentTypeGrid" class="grid grid-cols-2 gap-3">
+          <button type="button" data-type="meeting"
+            class="content-type-btn selected border rounded-xl px-4 py-3 text-left transition">
+            <div class="text-xl mb-0.5">🗣️</div>
+            <div class="text-sm font-semibold text-slate-800">会議録</div>
+            <div class="text-xs text-slate-400">議事録・文字起こし</div>
+          </button>
+          <button type="button" data-type="news"
+            class="content-type-btn border rounded-xl px-4 py-3 text-left transition">
+            <div class="text-xl mb-0.5">📰</div>
+            <div class="text-sm font-semibold text-slate-800">ニュース記事</div>
+            <div class="text-xs text-slate-400">キャスター×解説者の対談に</div>
+          </button>
+          <button type="button" data-type="thread"
+            class="content-type-btn border rounded-xl px-4 py-3 text-left transition">
+            <div class="text-xl mb-0.5">💬</div>
+            <div class="text-sm font-semibold text-slate-800">掲示板スレッド</div>
+            <div class="text-xs text-slate-400">5ch/2ch等の議論に</div>
+          </button>
+          <button type="button" data-type="auto"
+            class="content-type-btn border rounded-xl px-4 py-3 text-left transition">
+            <div class="text-xl mb-0.5">✨</div>
+            <div class="text-sm font-semibold text-slate-800">おまかせ</div>
+            <div class="text-xs text-slate-400">一般テキストをAIが会話化</div>
+          </button>
+        </div>
+        <input type="hidden" id="contentType" value="meeting">
+      </div>
+
+      <!-- タイトル -->
       <div class="mb-5">
         <label class="block text-sm font-medium text-slate-700 mb-1.5" for="title">
-          会議タイトル <span class="text-red-500">*</span>
+          タイトル <span class="text-red-500">*</span>
         </label>
         <input
           id="title"
@@ -53,18 +88,11 @@
       <!-- テキストエリア -->
       <div class="mb-5">
         <label class="block text-sm font-medium text-slate-700 mb-1.5" for="text">
-          トランスクリプト本文 <span class="text-red-500">*</span>
+          <span id="textLabel">本文</span> <span class="text-red-500">*</span>
         </label>
         <textarea
           id="text"
           rows="16"
-          placeholder="ここにGoogle Meetの文字起こし、議事録、メモなどを貼り付けてください。
-
-例：
-山田：今日は新機能の優先順位について話し合いたいと思います。
-鈴木：先週のユーザーヒアリングの結果を踏まえると、検索機能が最優先かと。
-山田：そうですね。では今週中にスペックを固めましょう。
-..."
           required
           class="w-full border border-slate-200 rounded-lg px-4 py-3 text-sm
                  focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent
@@ -73,7 +101,7 @@
 
         <!-- 文字数カウンター -->
         <div class="flex justify-between mt-1.5">
-          <p class="text-xs text-slate-400">
+          <p id="textHint" class="text-xs text-slate-400">
             話者名を「山田：」のように書くと、より精度の高い分析になります
           </p>
           <span id="charCount" class="text-xs text-slate-400">0 文字</span>
@@ -115,7 +143,7 @@
     <div class="flex items-center gap-2 text-xs text-slate-600 flex-wrap">
       <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-medium">① テキスト入力</span>
       <span class="text-slate-300">→</span>
-      <span class="bg-purple-50 text-purple-600 px-3 py-1 rounded-full font-medium">② Gemini AI分析</span>
+      <span class="bg-purple-50 text-purple-600 px-3 py-1 rounded-full font-medium">② AIが会話台本化・分析</span>
       <span class="text-slate-300">→</span>
       <span class="bg-pink-50 text-pink-600 px-3 py-1 rounded-full font-medium">③ 字幕・アバター生成</span>
       <span class="text-slate-300">→</span>
@@ -129,11 +157,85 @@
 {% endblock %}
 
 {% block scripts %}
+<style>
+  .content-type-btn { border-color: #e2e8f0; background: #fff; }
+  .content-type-btn.selected {
+    border-color: #6366f1;
+    background: #eef2ff;
+    box-shadow: 0 0 0 1px #6366f1 inset;
+  }
+</style>
 <script>
   const textArea = document.getElementById('text');
   const charCount = document.getElementById('charCount');
   const submitBtn = document.getElementById('submitBtn');
   const form = document.getElementById('pasteForm');
+  const contentTypeInput = document.getElementById('contentType');
+  const textLabel = document.getElementById('textLabel');
+  const textHint = document.getElementById('textHint');
+  const titleInput = document.getElementById('title');
+
+  // コンテンツ種別ごとの表示設定
+  const TYPE_CONFIG = {
+    meeting: {
+      label: '会議録本文',
+      hint: '話者名を「山田：」のように書くと、より精度の高い分析になります',
+      placeholder: `ここに会議の文字起こし・議事録・メモを貼り付けてください。
+
+例：
+山田：今日は新機能の優先順位について話し合いたいと思います。
+鈴木：先週のユーザーヒアリングの結果を踏まえると、検索機能が最優先かと。
+山田：そうですね。では今週中にスペックを固めましょう。`,
+      titlePlaceholder: '例：2026-05-20 週次定例MTG',
+    },
+    news: {
+      label: 'ニュース記事本文',
+      hint: '記事をそのまま貼り付けると、キャスターと解説者の対談形式に変換します',
+      placeholder: `ここにニュース記事の本文を貼り付けてください。
+
+例：
+政府は本日、再生可能エネルギーの導入目標を2040年までに
+電力の60%へ引き上げると発表した。太陽光と洋上風力を中心に
+投資を拡大する一方、送電網の整備が課題となる。`,
+      titlePlaceholder: '例：再エネ目標、2040年に60%へ',
+    },
+    thread: {
+      label: 'スレッド本文',
+      hint: 'スレッドをそのまま貼り付けると、住民たちの議論動画に変換します',
+      placeholder: `ここに掲示板スレッドの内容を貼り付けてください。
+
+例：
+1 名無しさん：新しいスマホ買ったんだけどさ
+2 名無しさん：何買ったの？
+3 名無しさん：型落ちだけど十分すぎる`,
+      titlePlaceholder: '例：新型スマホ、買うべき？スレ',
+    },
+    auto: {
+      label: '本文',
+      hint: 'どんな文章でもOK。AIが内容に合った登場人物で会話に変換します',
+      placeholder: `ここに動画にしたい文章を貼り付けてください。
+ブログ記事・解説文・メモなど何でも構いません。`,
+      titlePlaceholder: '例：今日学んだことまとめ',
+    },
+  };
+
+  // 種別ボタンの選択処理
+  document.querySelectorAll('.content-type-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.content-type-btn').forEach((b) => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const type = btn.dataset.type;
+      contentTypeInput.value = type;
+      const cfg = TYPE_CONFIG[type];
+      textLabel.textContent = cfg.label;
+      textHint.textContent = cfg.hint;
+      textArea.placeholder = cfg.placeholder;
+      titleInput.placeholder = cfg.titlePlaceholder;
+    });
+  });
+
+  // 初期プレースホルダー設定
+  textArea.placeholder = TYPE_CONFIG.meeting.placeholder;
 
   // 文字数カウンターをリアルタイム更新
   textArea.addEventListener('input', () => {
@@ -148,14 +250,14 @@
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const title = document.getElementById('title').value.trim();
+    const title = titleInput.value.trim();
     const text = textArea.value.trim();
     const language = document.getElementById('language').value;
     const description = document.getElementById('description').value.trim() || null;
+    const content_type = contentTypeInput.value;
 
     if (!title || text.length < 10) return;
 
-    // ボタンをローディング状態に
     submitBtn.disabled = true;
     submitBtn.textContent = '送信中...';
 
@@ -167,7 +269,7 @@
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ title, text, language, description }),
+        body: JSON.stringify({ title, text, language, description, content_type }),
       });
 
       if (!response.ok) {
@@ -176,8 +278,6 @@
       }
 
       const data = await response.json();
-
-      // 処理進捗ページへリダイレクト
       window.location.href = `/jobs/${data.job_id}`;
 
     } catch (error) {
